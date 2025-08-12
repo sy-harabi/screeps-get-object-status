@@ -11,7 +11,7 @@ This prevents your bots from wasting time and resources trying to reach objects 
 This module provides a single function, `getObjectStatus`, which takes a `RoomObject` or `RoomPosition` as input and returns the status of the area it's in.
 
 ```javascript
-const getObjectStatus = require("./get-object.status")
+const getObjectStatus = require("./get-object-status")
 
 // Example: Check the status of a PowerBank
 const powerBank = Game.getObjectById("somePowerBankId") // Replace with actual PowerBank ID
