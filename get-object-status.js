@@ -58,7 +58,7 @@ function getObjectStatus(object) {
 
   const roomCallback = (r) => (r === roomName ? costs : false)
 
-  if (exitWalls[TOP] && exitWalls[BOTTOM]) {
+  if (exitWalls[TOP] && exitWalls[BOTTOM] && !exitWalls[LEFT] && !exitWalls[RIGHT]) {
     const goals = [...room.find(FIND_EXIT_TOP), ...room.find(FIND_EXIT_BOTTOM)].map((exit) => ({ pos: exit, range: 0 }))
     const search = PathFinder.search(objectPos, goals, {
       roomCallback,
@@ -73,7 +73,7 @@ function getObjectStatus(object) {
     return Game.map.getRoomStatus(checkRoomName).status
   }
 
-  if (exitWalls[LEFT] && exitWalls[RIGHT]) {
+  if (exitWalls[LEFT] && exitWalls[RIGHT] && !exitWalls[TOP] && !exitWalls[BOTTOM]) {
     const goals = [...room.find(FIND_EXIT_LEFT), ...room.find(FIND_EXIT_RIGHT)].map((exit) => ({ pos: exit, range: 0 }))
     const search = PathFinder.search(objectPos, goals, {
       roomCallback,
