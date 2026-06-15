@@ -27,9 +27,10 @@ function getObjectStatus(object) {
   const roomName = objectPos.roomName
   const [roomX, roomY] = roomNameToXY(roomName)
 
-  // If the room is not a highway room,
-  // return its status directly from Game.map.
-  if ((roomX < 0 ? roomX + 1 : roomX) % 10 !== 0 && (roomY < 0 ? roomY + 1 : roomY) % 10 !== 0) {
+  // If the room is a normal room (not a highway), return its status directly.
+  // Highway rooms have at least one coordinate that is a multiple of 10.
+  const isNormalRoom = (roomX < 0 ? roomX + 1 : roomX) % 10 !== 0 && (roomY < 0 ? roomY + 1 : roomY) % 10 !== 0
+  if (isNormalRoom) {
     return Game.map.getRoomStatus(roomName).status
   }
 
@@ -54,10 +55,10 @@ function getObjectStatus(object) {
     costs.set(s.pos.x, s.pos.y, 255)
 
     // Identify if the wall is located at a room exit and store it.
-    if (s.pos.x === 0) exitWalls[LEFT] = s
-    else if (s.pos.x === 49) exitWalls[RIGHT] = s
-    else if (s.pos.y === 0) exitWalls[TOP] = s
-    else if (s.pos.y === 49) exitWalls[BOTTOM] = s
+    if (s.pos.x === 0 && !exitWalls[LEFT]) exitWalls[LEFT] = s
+    else if (s.pos.x === 49 && !exitWalls[RIGHT]) exitWalls[RIGHT] = s
+    else if (s.pos.y === 0 && !exitWalls[TOP]) exitWalls[TOP] = s
+    else if (s.pos.y === 49 && !exitWalls[BOTTOM]) exitWalls[BOTTOM] = s
   })
 
   // If no walls are found in the room, it should be a normal room.
@@ -65,7 +66,7 @@ function getObjectStatus(object) {
     return STATUS_NORMAL
   }
 
-  // Define a room callback for PathFinder to use the custom cost matrix. Block the walls and do not allow other rooms.
+  // PathFinder callback: use our cost matrix and prevent pathing into other rooms.
   const roomCallback = (r) => (r === roomName ? costs : false)
 
   // Case 1: Highway room with only vertical walls (blocking horizontal movement).
@@ -177,27 +178,22 @@ function getRoomNameFromXY(x, y) {
  * @returns {[number, number]} An array containing the x and y coordinates [x, y].
  */
 function roomNameToXY(name) {
-  let xx = parseInt(name.substring(1), 10)
-  let verticalPos = 2
-  // Adjust `verticalPos` based on the length of the x-coordinate part of the room name.
-  if (xx >= 100) {
-    verticalPos = 4
-  } else if (xx >= 10) {
-    verticalPos = 3
+  const match = name.match(/^([WE])(\d+)([NS])(\d+)$/i)
+  if (!match) {
+    throw new Error("Invalid room name: " + name)
   }
-  let yy = parseInt(name.substring(verticalPos + 1), 10)
 
-  let horizontalDir = name.charAt(0)
-  let verticalDir = name.charAt(verticalPos)
+  const [, hDir, xStr, vDir, yStr] = match
+  let x = parseInt(xStr, 10)
+  let y = parseInt(yStr, 10)
 
-  // Adjust coordinates based on 'W' (West) or 'N' (North) prefixes.
-  if (horizontalDir === "W" || horizontalDir === "w") {
-    xx = -xx - 1
+  if (hDir.toUpperCase() === "W") {
+    x = -x - 1
   }
-  if (verticalDir === "N" || verticalDir === "n") {
-    yy = -yy - 1
+  if (vDir.toUpperCase() === "N") {
+    y = -y - 1
   }
-  return [xx, yy]
+  return [x, y]
 }
 
 module.exports = getObjectStatus
